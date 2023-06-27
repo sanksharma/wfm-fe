@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "333016987113",
+    "project_id": "wfm-cap-poc",
+    "storage_bucket": "wfm-cap-poc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:333016987113:android:dae226b9d07d26807d4778",
+        "android_client_info": {
+          "package_name": "com.wholefoodsmarket.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "333016987113-s5nls3hvtg4q2fnsio91pi6tsmbijj5i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFM-WYwG6O72KgusEeI90HT7QJrj-TpM4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "333016987113-s5nls3hvtg4q2fnsio91pi6tsmbijj5i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
