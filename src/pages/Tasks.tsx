@@ -49,7 +49,7 @@ function Tasks() {
       <div className="bg-white rounded-md shadow-md p-4">
         <div className="flex justify-between">
           <h1 className="text-xl font-medium">My Tasks</h1>
-          {Capacitor.isNativePlatform() ? (
+          {!Capacitor.isNativePlatform() ? (
             <Button onClick={() => refetch()}>
               {isFetching ? "Fetching..." : "Refetch"}
             </Button>
