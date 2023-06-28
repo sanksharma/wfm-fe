@@ -1,11 +1,53 @@
 import { Spinner, Status, StatusPill } from "@/components/elements";
 import { Button } from "@/components/elements/Button";
 import { Task, useTasks } from "@/features/tasks";
+import { useGetTaskNotification } from "@/features/tasks/api/getTaskNotification";
 import { useUpdateTask } from "@/features/tasks/api/updateTask";
 import { useCamera } from "@capacitor-community/camera-react";
 import { Camera, CameraResultType } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+
+function Toggle({ taskDesc }: { taskDesc: string }) {
+  const [enabled, setEnabled] = useState(false);
+  const getTaskNotification = useGetTaskNotification();
+
+  const subscriptionRaw = localStorage.getItem("subcriptionObj");
+  if (!subscriptionRaw) {
+    return null;
+  }
+
+  const subscription = JSON.parse(subscriptionRaw);
+
+  return (
+    <div className="relative flex flex-col items-center justify-center overflow-hidden">
+      <div className="flex">
+        <label className="inline-flex relative items-center mr-5 cursor-pointer">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={enabled}
+            readOnly
+          />
+
+          <div
+            onClick={() => {
+              setEnabled(!enabled);
+              getTaskNotification.mutate({
+                data: {
+                  subscription,
+                  taskDesc,
+                  checked: enabled,
+                },
+              });
+            }}
+            className="w-11 h-6 bg-gray-200 rounded-full peer  peer-focus:ring-green-300  peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"
+          ></div>
+        </label>
+      </div>
+    </div>
+  );
+}
 
 function Tasks() {
   const { data, refetch, isLoading, isFetching } = useTasks();
@@ -74,6 +116,9 @@ function Tasks() {
                 <th scope="col" className="px-6 py-4 font-light">
                   Status
                 </th>
+                <th scope="col" className="px-6 py-4 font-light">
+                  Is Work Done?
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -89,6 +134,9 @@ function Tasks() {
                         updateTask.mutate({ data: { taskId: task.id } })
                       }
                     />
+                  </td>
+                  <td>
+                    <Toggle taskDesc={task.desc} />
                   </td>
                 </tr>
               ))}
