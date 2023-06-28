@@ -6,9 +6,15 @@ import { useUpdateTask } from "@/features/tasks/api/updateTask";
 import { useCamera } from "@capacitor-community/camera-react";
 import { Camera, CameraResultType } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-function Toggle({ taskDesc }: { taskDesc: string }) {
+function Toggle({
+  taskDesc,
+  onChange,
+}: {
+  taskDesc?: string;
+  onChange?: () => void;
+}) {
   const [enabled, setEnabled] = useState(false);
   const getTaskNotification = useGetTaskNotification();
 
@@ -33,6 +39,12 @@ function Toggle({ taskDesc }: { taskDesc: string }) {
           <div
             onClick={() => {
               setEnabled(!enabled);
+
+              if (onChange) {
+                onChange();
+                return;
+              }
+
               getTaskNotification.mutate({
                 data: {
                   subscription,
@@ -75,6 +87,60 @@ function Tasks() {
     },
     [getPhoto]
   );
+
+  const [openCamera, toggleCamera] = useState(false);
+
+  const videoRef = useRef();
+
+  let mediaStream;
+
+  const getVideo = async () => {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 600 }, height: { ideal: 400 } },
+      });
+
+    let video = videoRef.current;
+
+    video.srcObject = mediaStream;
+
+    video.onloadedmetadata = () => {
+      video.play();
+    };
+  };
+
+  function stopCamera() {
+    videoRef.srcObject = null;
+
+    // Function to reset the video stream
+
+    if (mediaStream) {
+      console.log("mediaStream.getTracks()", mediaStream.getTracks());
+
+      mediaStream.getVideoTracks().forEach((track) => {
+        console.log("terack stoo");
+
+        track.stop();
+      });
+    }
+  }
+
+  const handleCameraToggle = () => {
+    toggleCamera((prev) => {
+      if (prev) {
+        stopCamera();
+      }
+
+      return !prev;
+    });
+  };
+
+  useEffect(() => {
+    if (openCamera) getVideo();
+    else stopCamera();
+  }, [openCamera, videoRef]);
+
+  const label = { inputProps: { "aria-label": "Color switch demo" } };
 
   const tasks: Task[] = data?.data.tasks ?? [];
 
@@ -142,6 +208,12 @@ function Tasks() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="camera flex justify-center items-center p-4">
+          <p className="mr-4">Camera On/OFF</p>
+          <Toggle onChange={handleCameraToggle} {...label} />{" "}
+          {openCamera ? <video id="videoElement" ref={videoRef}></video> : null}
         </div>
       </div>
     </div>
