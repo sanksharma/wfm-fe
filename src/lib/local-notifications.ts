@@ -34,9 +34,13 @@ export function sendOverdueTasksNotification(tasks: Task[]) {
       };
 
       if (!isNativePlatform) {
-        new Notification(notification.title, {
-          body: notification.body,
-        });
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification(notification.title, {
+              body: notification.body,
+            });
+          });
+        }
       } else {
         notifications.push(notification);
       }
