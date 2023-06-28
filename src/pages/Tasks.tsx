@@ -8,22 +8,8 @@ import { Camera, CameraResultType } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-function Toggle({
-  taskDesc,
-  onChange,
-}: {
-  taskDesc?: string;
-  onChange?: () => void;
-}) {
-  const [enabled, setEnabled] = useState(false);
-  const getTaskNotification = useGetTaskNotification();
-
-  const subscriptionRaw = localStorage.getItem("subcriptionObj");
-  if (!subscriptionRaw) {
-    return null;
-  }
-
-  const subscription = JSON.parse(subscriptionRaw);
+function Toggle({ onChange }: { onChange: (checked: boolean) => void }) {
+  const [checked, setChecked] = useState(false);
 
   return (
     <div className="relative flex flex-col items-center justify-center overflow-hidden">
@@ -32,26 +18,14 @@ function Toggle({
           <input
             type="checkbox"
             className="sr-only peer"
-            checked={enabled}
+            checked={checked}
             readOnly
           />
 
           <div
             onClick={() => {
-              setEnabled(!enabled);
-
-              if (onChange) {
-                onChange();
-                return;
-              }
-
-              getTaskNotification.mutate({
-                data: {
-                  subscription,
-                  taskDesc: taskDesc ?? "",
-                  checked: enabled,
-                },
-              });
+              onChange(checked);
+              setChecked(!checked);
             }}
             className="w-11 h-6 bg-gray-200 rounded-full peer  peer-focus:ring-green-300  peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"
           ></div>
@@ -64,6 +38,8 @@ function Toggle({
 function Tasks() {
   const { data, refetch, isLoading, isFetching } = useTasks();
   const updateTask = useUpdateTask();
+  const getTaskNotification = useGetTaskNotification();
+  const subscriptionRaw = localStorage.getItem("subcriptionObj");
   const { getPhoto } = useCamera();
 
   const triggerCamera = useCallback(
@@ -204,7 +180,23 @@ function Tasks() {
                     />
                   </td>
                   <td>
-                    <Toggle taskDesc={task.desc} />
+                    <Toggle
+                      onChange={(checked) => {
+                        if (!subscriptionRaw) {
+                          return null;
+                        }
+
+                        const subscription = JSON.parse(subscriptionRaw);
+
+                        getTaskNotification.mutate({
+                          data: {
+                            subscription,
+                            taskDesc: task.desc,
+                            checked: checked,
+                          },
+                        });
+                      }}
+                    />
                   </td>
                 </tr>
               ))}
