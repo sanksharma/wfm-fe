@@ -89,37 +89,39 @@ function Tasks() {
   );
 
   const [openCamera, toggleCamera] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
 
-  const videoRef = useRef();
+  async function getVideo() {
+    const video = videoRef.current;
 
-  let mediaStream;
-
-  const getVideo = async () => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
-      mediaStream = await navigator.mediaDevices.getUserMedia({
+    if (
+      video &&
+      navigator.mediaDevices &&
+      navigator.mediaDevices.getUserMedia
+    ) {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 600 }, height: { ideal: 400 } },
       });
 
-    let video = videoRef.current;
+      mediaStreamRef.current = mediaStream;
 
-    video.srcObject = mediaStream;
-
-    video.onloadedmetadata = () => {
-      video.play();
-    };
-  };
+      video.srcObject = mediaStream;
+      video.onloadedmetadata = () => {
+        video.play();
+      };
+    }
+  }
 
   function stopCamera() {
-    videoRef.srcObject = null;
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject = null;
+    }
 
-    // Function to reset the video stream
+    const mediaStream = mediaStreamRef.current;
 
     if (mediaStream) {
-      console.log("mediaStream.getTracks()", mediaStream.getTracks());
-
       mediaStream.getVideoTracks().forEach((track) => {
-        console.log("terack stoo");
-
         track.stop();
       });
     }
@@ -212,7 +214,7 @@ function Tasks() {
 
         <div className="camera flex justify-center items-center p-4">
           <p className="mr-4">Camera On/OFF</p>
-          <Toggle onChange={handleCameraToggle} {...label} />{" "}
+          <Toggle onChange={handleCameraToggle} {...label} />
           {openCamera ? <video id="videoElement" ref={videoRef}></video> : null}
         </div>
       </div>
