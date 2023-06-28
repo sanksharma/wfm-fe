@@ -1,7 +1,15 @@
 import { axios } from "@/lib/axios";
 import { useMutation } from "react-query";
 
-export const getTaskNotification = ({ data }) => {
+type GetTaskNotificationDTO = {
+  data: {
+    subscription: string;
+    taskDesc: string;
+    checked: boolean;
+  };
+};
+
+export const getTaskNotification = ({ data }: GetTaskNotificationDTO) => {
   return axios.post("/tasks/notify", data);
 };
 

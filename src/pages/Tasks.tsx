@@ -48,7 +48,7 @@ function Toggle({
               getTaskNotification.mutate({
                 data: {
                   subscription,
-                  taskDesc,
+                  taskDesc: taskDesc ?? "",
                   checked: enabled,
                 },
               });
