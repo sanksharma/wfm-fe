@@ -1,39 +1,18 @@
-import { Spinner, Status, StatusPill } from "@/components/elements";
-import { Button } from "@/components/elements/Button";
+import {
+  Spinner,
+  Status,
+  StatusPill,
+  Toggle,
+  Button,
+  CameraTogglePreview,
+} from "@/components/elements";
 import { Task, useTasks } from "@/features/tasks";
 import { useGetTaskNotification } from "@/features/tasks/api/getTaskNotification";
 import { useUpdateTask } from "@/features/tasks/api/updateTask";
 import { useCamera } from "@capacitor-community/camera-react";
 import { Camera, CameraResultType } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-function Toggle({ onChange }: { onChange: (checked: boolean) => void }) {
-  const [checked, setChecked] = useState(false);
-
-  return (
-    <div className="relative flex flex-col items-center justify-center overflow-hidden">
-      <div className="flex">
-        <label className="inline-flex relative items-center mr-5 cursor-pointer">
-          <input
-            type="checkbox"
-            className="sr-only peer"
-            checked={checked}
-            readOnly
-          />
-
-          <div
-            onClick={() => {
-              onChange(checked);
-              setChecked(!checked);
-            }}
-            className="w-11 h-6 bg-gray-200 rounded-full peer  peer-focus:ring-green-300  peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"
-          ></div>
-        </label>
-      </div>
-    </div>
-  );
-}
+import { useCallback } from "react";
 
 function Tasks() {
   const { data, refetch, isLoading, isFetching } = useTasks();
@@ -63,62 +42,6 @@ function Tasks() {
     },
     [getPhoto]
   );
-
-  const [openCamera, toggleCamera] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-
-  async function getVideo() {
-    const video = videoRef.current;
-
-    if (
-      video &&
-      navigator.mediaDevices &&
-      navigator.mediaDevices.getUserMedia
-    ) {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 600 }, height: { ideal: 400 } },
-      });
-
-      mediaStreamRef.current = mediaStream;
-
-      video.srcObject = mediaStream;
-      video.onloadedmetadata = () => {
-        video.play();
-      };
-    }
-  }
-
-  function stopCamera() {
-    if (videoRef.current?.srcObject) {
-      videoRef.current.srcObject = null;
-    }
-
-    const mediaStream = mediaStreamRef.current;
-
-    if (mediaStream) {
-      mediaStream.getVideoTracks().forEach((track) => {
-        track.stop();
-      });
-    }
-  }
-
-  const handleCameraToggle = () => {
-    toggleCamera((prev) => {
-      if (prev) {
-        stopCamera();
-      }
-
-      return !prev;
-    });
-  };
-
-  useEffect(() => {
-    if (openCamera) getVideo();
-    else stopCamera();
-  }, [openCamera, videoRef]);
-
-  const label = { inputProps: { "aria-label": "Color switch demo" } };
 
   const tasks: Task[] = data?.data.tasks ?? [];
 
@@ -160,9 +83,11 @@ function Tasks() {
                 <th scope="col" className="px-6 py-4 font-light">
                   Status
                 </th>
-                <th scope="col" className="px-6 py-4 font-light">
-                  Is Work Done?
-                </th>
+                {Capacitor.isNativePlatform() ? null : (
+                  <th scope="col" className="px-6 py-4 font-light">
+                    Is Work Done?
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -179,36 +104,33 @@ function Tasks() {
                       }
                     />
                   </td>
-                  <td>
-                    <Toggle
-                      onChange={(checked) => {
-                        if (!subscriptionRaw) {
-                          return null;
-                        }
+                  {Capacitor.isNativePlatform() ? null : (
+                    <td>
+                      <Toggle
+                        onChange={(checked) => {
+                          if (!subscriptionRaw) {
+                            return null;
+                          }
 
-                        const subscription = JSON.parse(subscriptionRaw);
+                          const subscription = JSON.parse(subscriptionRaw);
 
-                        getTaskNotification.mutate({
-                          data: {
-                            subscription,
-                            taskDesc: task.desc,
-                            checked: checked,
-                          },
-                        });
-                      }}
-                    />
-                  </td>
+                          getTaskNotification.mutate({
+                            data: {
+                              subscription,
+                              taskDesc: task.desc,
+                              checked: checked,
+                            },
+                          });
+                        }}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
-        <div className="camera flex justify-center items-center p-4">
-          <p className="mr-4">Camera On/OFF</p>
-          <Toggle onChange={handleCameraToggle} {...label} />
-          {openCamera ? <video id="videoElement" ref={videoRef}></video> : null}
-        </div>
+        {Capacitor.isNativePlatform() ? null : <CameraTogglePreview />}
       </div>
     </div>
   );
